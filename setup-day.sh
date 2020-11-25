@@ -10,5 +10,6 @@ if [ ! -d .git ]; then
 fi
 
 name="$(printf "day%02d" "$1")"
+cat Cargo.toml |grep -n ^] |cut -d ":" -f1 | xargs -I '{}' sed -i "{}i\ \ \ \ 'day03'," Cargo.toml
 cargo new --bin "$name"
 mkdir "$name/input"

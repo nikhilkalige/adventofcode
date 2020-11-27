@@ -2,15 +2,22 @@ use std::io::{self};
 
 fn main() -> io::Result<()> {
     let input = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/input/input.txt"));
-    let mut opcodes: Vec<i32> = input
+    let opcodes: Vec<i32> = input
         .trim()
         .split(',')
         .map(|s| s.parse().expect("Input should be a number"))
         .collect();
 
-    let sim_stdin = Some(1);
-    let result = processor(&mut opcodes, sim_stdin);
-    println!("{:?}", result);
+    {
+        let mut opcodes = opcodes.clone();
+        let result = processor(&mut opcodes, Some(1));
+        println!("{:?}", result);
+    }
+    {
+        let mut opcodes = opcodes.clone();
+        let result = processor(&mut opcodes, Some(5));
+        println!("{:?}", result);
+    }
     Ok(())
 }
 
@@ -82,6 +89,40 @@ fn processor(opcodes: &mut [i32], input: Option<i32>) -> Vec<i32> {
                 output.push(result);
                 index += 2;
             }
+            5 => {
+                let test_value = get_value(opcodes, &current_inst, index, 0);
+                if test_value != 0 {
+                    let jump_position = get_value(opcodes, &current_inst, index, 1);
+                    index = jump_position as usize;
+                } else {
+                    index += 3;
+                }
+            }
+            6 => {
+                let test_value = get_value(opcodes, &current_inst, index, 0);
+                if test_value == 0 {
+                    let jump_position = get_value(opcodes, &current_inst, index, 1);
+                    index = jump_position as usize;
+                } else {
+                    index += 3;
+                }
+            }
+            7 => {
+                let position = opcodes[index + 3] as usize;
+                let pa = get_value(opcodes, &current_inst, index, 0);
+                let pb = get_value(opcodes, &current_inst, index, 1);
+                let answer = if pa < pb { 1 } else { 0 };
+                opcodes[position] = answer;
+                index += 4;
+            }
+            8 => {
+                let position = opcodes[index + 3] as usize;
+                let pa = get_value(opcodes, &current_inst, index, 0);
+                let pb = get_value(opcodes, &current_inst, index, 1);
+                let answer = if pa == pb { 1 } else { 0 };
+                opcodes[position] = answer;
+                index += 4;
+            }
             other => panic!("Unknown opcode {}", other),
         }
         current_inst = instruction(opcodes[index]);
@@ -95,5 +136,35 @@ fn get_value(opcodes: &[i32], inst: &Instruction, index: usize, parameter_index:
     match inst.mode(parameter_index) {
         Mode::Position => opcodes[opcodes[param_location] as usize],
         Mode::Immediate => opcodes[param_location],
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::vec;
+
+    use super::*;
+
+    #[test]
+    fn test_processor() {
+        let mut input1: Vec<i32> = vec![3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8];
+        assert_eq!(processor(&mut input1, Some(8)), vec![1]);
+
+        let mut input2: Vec<i32> = vec![3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9];
+        assert_eq!(processor(&mut input2, Some(0)), vec![0]);
+        assert_eq!(processor(&mut input2, Some(1)), vec![1]);
+
+        let mut input3: Vec<i32> = vec![3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1];
+        assert_eq!(processor(&mut input3, Some(0)), vec![0]);
+        // assert_eq!(processor(&mut input3, Some(1)), vec![1]);
+
+        let mut input4: Vec<i32> = vec![
+            3, 21, 1008, 21, 8, 20, 1005, 20, 22, 107, 8, 21, 20, 1006, 20, 31, 1106, 0, 36, 98, 0,
+            0, 1002, 21, 125, 20, 4, 20, 1105, 1, 46, 104, 999, 1105, 1, 46, 1101, 1000, 1, 20, 4,
+            20, 1105, 1, 46, 98, 99,
+        ];
+        assert_eq!(processor(&mut input4, Some(7)), vec![999]);
+        assert_eq!(processor(&mut input4, Some(8)), vec![1000]);
+        assert_eq!(processor(&mut input4, Some(9)), vec![1001]);
     }
 }

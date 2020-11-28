@@ -14,3 +14,11 @@ cat Cargo.toml |grep -n ^] |cut -d ":" -f1 | xargs -I '{}' sed -i "{}i\ \ \ \ '$
 cargo new --bin "$name"
 mkdir "$name/input"
 touch "$name/input/input.txt"
+
+echo "use std::io::{self};
+
+fn main() -> io::Result<()> {
+    let input = include_str!(concat!(env!(\"CARGO_MANIFEST_DIR\"), \"/input/input.txt\"));
+
+    Ok(())
+}" > $name/src/main.rs

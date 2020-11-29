@@ -3,20 +3,20 @@ use std::io::{self};
 
 fn main() -> io::Result<()> {
     let input = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/input/input.txt"));
-    let opcodes: Vec<i32> = input
+    let opcodes: Vec<i64> = input
         .trim()
         .split(',')
         .map(|s| s.parse().expect("Input should be a number"))
         .collect();
 
     {
-        let mut opcodes = opcodes.clone();
-        let result = simple_processor(&mut opcodes, vec![1]);
+        let opcodes = opcodes.clone();
+        let (_, result) = simple_processor(&opcodes, vec![1]);
         println!("{:?}", result);
     }
     {
-        let mut opcodes = opcodes.clone();
-        let result = simple_processor(&mut opcodes, vec![5]);
+        let opcodes = opcodes.clone();
+        let (_, result) = simple_processor(&opcodes, vec![5]);
         println!("{:?}", result);
     }
     Ok(())

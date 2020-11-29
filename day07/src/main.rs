@@ -6,7 +6,7 @@ use std::thread;
 
 fn main() -> io::Result<()> {
     let input = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/input/input.txt"));
-    let opcodes: Vec<i32> = input
+    let opcodes: Vec<i64> = input
         .trim()
         .split(',')
         .map(|s| s.parse().expect("Input should be a number"))
@@ -23,17 +23,17 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn run_with_phase_setting(opcodes: &[i32], phase_settings: &[u32]) -> i32 {
+fn run_with_phase_setting(opcodes: &[i64], phase_settings: &[u32]) -> i64 {
     let mut input = 0;
     for &phase in phase_settings {
-        let output = simple_processor(&mut opcodes.to_owned(), vec![phase as i32, input]);
+        let (_, output) = simple_processor(&mut opcodes.to_owned(), vec![phase as i64, input]);
         input = *output.first().expect("Program must return a value");
     }
 
     input
 }
 
-fn run_with_phase_setting_feedback(opcodes: &[i32], phase_settings: &[u32]) -> i32 {
+fn run_with_phase_setting_feedback(opcodes: &[i64], phase_settings: &[u32]) -> i64 {
     let (main_send, amp_a_recv) = channel();
     let (amp_a_send, amp_b_recv) = channel();
     let (amp_b_send, amp_c_recv) = channel();
@@ -41,11 +41,11 @@ fn run_with_phase_setting_feedback(opcodes: &[i32], phase_settings: &[u32]) -> i
     let (amp_d_send, amp_e_recv) = channel();
     let (amp_e_send, main_recv) = channel();
 
-    main_send.send(phase_settings[0] as i32).unwrap();
-    amp_a_send.send(phase_settings[1] as i32).unwrap();
-    amp_b_send.send(phase_settings[2] as i32).unwrap();
-    amp_c_send.send(phase_settings[3] as i32).unwrap();
-    amp_d_send.send(phase_settings[4] as i32).unwrap();
+    main_send.send(phase_settings[0] as i64).unwrap();
+    amp_a_send.send(phase_settings[1] as i64).unwrap();
+    amp_b_send.send(phase_settings[2] as i64).unwrap();
+    amp_c_send.send(phase_settings[3] as i64).unwrap();
+    amp_d_send.send(phase_settings[4] as i64).unwrap();
 
     let mut program = opcodes.to_vec();
     thread::spawn(move || {
@@ -77,7 +77,7 @@ fn run_with_phase_setting_feedback(opcodes: &[i32], phase_settings: &[u32]) -> i
     result
 }
 
-fn max_signal(opcodes: &[i32], phase_settings: &[u32]) -> i32 {
+fn max_signal(opcodes: &[i64], phase_settings: &[u32]) -> i64 {
     let outputs = phase_settings.iter().permutations(5).map(|phase| {
         let phase_configuration: Vec<u32> = phase.iter().map(|v| **v).collect();
         let output = run_with_phase_setting(&opcodes.to_owned(), &phase_configuration);
@@ -87,7 +87,7 @@ fn max_signal(opcodes: &[i32], phase_settings: &[u32]) -> i32 {
     outputs.max().expect("Must have had orderings")
 }
 
-fn max_signal_with_feedback(opcodes: &[i32], phase_settings: &[u32]) -> i32 {
+fn max_signal_with_feedback(opcodes: &[i64], phase_settings: &[u32]) -> i64 {
     let outputs = phase_settings.iter().permutations(5).map(|phase| {
         let phase_configuration: Vec<u32> = phase.iter().map(|v| **v).collect();
         let output = run_with_phase_setting_feedback(&opcodes.to_owned(), &phase_configuration);

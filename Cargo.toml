@@ -1,18 +1,9 @@
-[workspace]
+[package]
+name = "advent_of_code"
+version = "0.1.0"
+authors = ["nikhilkalige <nikhilkalige@gmail.com>"]
+edition = "2018"
 
-members = [
-    # Libraries
-    'intcode',
 
-    # Applications
-    'day01',
-    'day02',
-    'day03',
-    'day04',
-    'day05',
-    'day06',
-    'day07',
-    'day08',
-    'day09',
-    'day10',
-]
+[dependencies]
+itertools = "0.9.0"

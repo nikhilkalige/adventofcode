@@ -1,0 +1,12 @@
+[package]
+name = "aoc_derive"
+version = "0.1.0"
+authors = ["nikhilkalige <nikhilkalige@gmail.com>"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = {version = "1.0.53", features=["extra-traits"]}
+quote = "1.0.7"

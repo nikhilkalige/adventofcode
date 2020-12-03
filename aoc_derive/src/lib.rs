@@ -11,6 +11,7 @@ struct AocArgs {
     pub end: u32,
 }
 
+
 impl syn::parse::Parse for AocArgs {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let args: syn::punctuated::Punctuated<syn::LitInt, Token![,]> =
@@ -32,13 +33,12 @@ impl syn::parse::Parse for AocArgs {
 #[proc_macro]
 pub fn aoc_run(input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(input as AocArgs);
-    println!("{:?}", args);
-
     let AocArgs {year, start ,end} = args;
 
     let mut runners = vec![];
+
+    let year_ident = quote::format_ident!("aoc{}", year);
     for day in start..=end {
-        let year_ident = quote::format_ident!("aoc{}", year);
         let day_ident = quote::format_ident!("day{:02}", day);
 
         let parse = quote::format_ident!("parse");
@@ -72,5 +72,28 @@ pub fn aoc_run(input: TokenStream) -> TokenStream {
 
     // eprintln!("INPUT: {:#?}", expanded);
 
+    TokenStream::from(expanded)
+}
+
+
+#[proc_macro]
+pub fn aoc_mod(input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(input as AocArgs);
+    let AocArgs {year, start ,end} = args;
+
+    let year_ident = quote::format_ident!("aoc{}", year);
+
+    let mut imports = vec![];
+    for day in start..=end {
+        let day_ident = quote::format_ident!("day{:02}", day);
+
+        imports.push(quote! {pub mod #day_ident;});
+    }
+
+    let expanded = quote! {
+        mod #year_ident {
+            #(#imports)*
+        }
+    };
     TokenStream::from(expanded)
 }

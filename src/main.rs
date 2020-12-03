@@ -1,7 +1,7 @@
-use aoc_derive::aoc_run;
+use aoc_derive::{aoc_mod, aoc_run};
 use std::io::{self};
 
-mod aoc2020;
+aoc_mod!(2020, 1, 2);
 
 fn main() -> io::Result<()> {
     // let input = include_str!(concat!(

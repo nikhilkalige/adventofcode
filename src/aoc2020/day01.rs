@@ -1,20 +1,21 @@
+use aoc_derive::{aoc_parser, aoc_solver};
 use itertools::Itertools;
+use std::num::ParseIntError;
 
-pub fn parse(input: &str) -> Vec<u32> {
+#[aoc_parser(day01)]
+pub fn parser(input: &str) -> Result<Vec<u32>, ParseIntError> {
     input
         .lines()
-        .map(|line| {
-            line.trim()
-                .parse::<u32>()
-                .expect("Input should only contain unsinged integers")
-        })
+        .map(|line| line.trim().parse::<u32>())
         .collect()
 }
 
+#[aoc_solver(day01, part1)]
 pub fn part1(numbers: &[u32]) -> u64 {
     product_of_combinations(numbers, 2)
 }
 
+#[aoc_solver(day01, part2)]
 pub fn part2(numbers: &[u32]) -> u64 {
     product_of_combinations(numbers, 3)
 }

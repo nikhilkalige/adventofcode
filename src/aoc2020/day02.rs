@@ -1,9 +1,12 @@
+use aoc_derive::{aoc_parser, aoc_solver};
 use std::{collections::HashMap, str::FromStr};
 
-pub fn parse(input: &str) -> Vec<(PasswordReq, String)> {
-    input.lines().map(|s| parse_line(s)).collect()
+#[aoc_parser(day02)]
+pub fn parse(input: &str) -> Result<Vec<(PasswordReq, String)>, String> {
+    Ok(input.lines().map(|s| parse_line(s)).collect())
 }
 
+#[aoc_solver(day02, part1)]
 pub fn part1(input: &[(PasswordReq, String)]) -> usize {
     input
         .iter()
@@ -11,6 +14,7 @@ pub fn part1(input: &[(PasswordReq, String)]) -> usize {
         .count()
 }
 
+#[aoc_solver(day02, part2)]
 pub fn part2(input: &[(PasswordReq, String)]) -> usize {
     input
         .iter()

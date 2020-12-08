@@ -1,99 +1,64 @@
-use proc_macro::{TokenStream};
-use syn::{parse_macro_input, Token};
-
+use proc_macro::TokenStream;
 use quote::quote;
+use syn::{parse_macro_input, ItemFn};
 
-
-#[derive(Debug)]
-struct AocArgs {
-    pub year: u32,
-    pub start: u32,
-    pub end: u32,
-}
-
-
-impl syn::parse::Parse for AocArgs {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let args: syn::punctuated::Punctuated<syn::LitInt, Token![,]> =
-            input.parse_terminated(syn::parse::Parse::parse)?;
-
-        let literals: Vec<u32> = args
-            .iter()
-            .map(|arg| arg.base10_parse::<u32>())
-            .collect::<Result<_, _>>()?;
-
-        match &(literals)[..] {
-            &[year, start, end] => Ok(AocArgs { year, start, end }),
-            _ => Err(input.error("Expected (year, start, end)")),
-        }
-    }
-}
-
+mod generator;
+mod types;
 
 #[proc_macro]
-pub fn aoc_run(input: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(input as AocArgs);
-    let AocArgs {year, start ,end} = args;
-
-    let mut runners = vec![];
-
-    let year_ident = quote::format_ident!("aoc{}", year);
-    for day in start..=end {
-        let day_ident = quote::format_ident!("day{:02}", day);
-
-        let parse = quote::format_ident!("parse");
-        let part1 = quote::format_ident!("part1");
-        let part2 = quote::format_ident!("part2");
-
-        let input_location =  format!("/src/aoc{}/input/day{:02}", year, day);
-
-        runners.push(quote! {
-            let contents = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), #input_location));
-
-            let input = #year_ident::#day_ident::#parse(&contents);
-
-            println!("Day {}:", #day);
-
-            let result = #year_ident::#day_ident::#part1(&input);
-            println!("  Part 1: {}", result);
-
-            let result = #year_ident::#day_ident::#part2(&input);
-            println!("  Part 2: {}", result);
-
-            println!("");
-        });
+pub fn aoc_main(input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(input as generator::ModuleArgs);
+    let code = generator::main_runner(args.year, args.days.0 as u32, args.days.1 as u32);
+    if code.is_err() {
+        return code.unwrap_err().to_compile_error().into();
     }
 
-    let expanded = quote! {
-        println!("Advent of Code {}", #year);
-        println!("-------------------");
-        #(#runners)*
-    };
-
-    // eprintln!("INPUT: {:#?}", expanded);
-
-    TokenStream::from(expanded)
+    code.unwrap().into()
 }
 
-
 #[proc_macro]
-pub fn aoc_mod(input: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(input as AocArgs);
-    let AocArgs {year, start ,end} = args;
-
-    let year_ident = quote::format_ident!("aoc{}", year);
-
-    let mut imports = vec![];
-    for day in start..=end {
-        let day_ident = quote::format_ident!("day{:02}", day);
-
-        imports.push(quote! {pub mod #day_ident;});
+pub fn aoc_new_mod(input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(input as generator::ModuleArgs);
+    let imports = generator::day_imports(args.days.0 as u32, args.days.1 as u32);
+    if imports.is_err() {
+        return imports.unwrap_err().to_compile_error().into();
     }
 
-    let expanded = quote! {
-        mod #year_ident {
-            #(#imports)*
-        }
+    let imports = imports.unwrap();
+    let implementations =
+        generator::default_implementations(args.days.0 as u32, args.days.1 as u32);
+    let module = quote! {
+        #imports
+        #implementations
     };
-    TokenStream::from(expanded)
+
+    module.into()
+}
+
+#[proc_macro_attribute]
+pub fn aoc_parser(args: TokenStream, input: TokenStream) -> TokenStream {
+    let day = parse_macro_input!(args as types::Day);
+    let parser = parse_macro_input!(input as ItemFn);
+
+    let implementation = generator::parser(day, parser);
+    if implementation.is_err() {
+        return implementation.unwrap_err().to_compile_error().into();
+    }
+
+    let code = implementation.unwrap();
+    (quote! { #code }).into()
+}
+
+#[proc_macro_attribute]
+pub fn aoc_solver(args: TokenStream, input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(args as generator::SolverArgs);
+    let solver = parse_macro_input!(input as ItemFn);
+
+    let implementation = generator::solver(args.day, args.part, solver);
+    if implementation.is_err() {
+        return implementation.unwrap_err().to_compile_error().into();
+    }
+
+    let code = implementation.unwrap();
+    (quote! { #code }).into()
 }

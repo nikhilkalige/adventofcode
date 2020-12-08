@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 aoc_derive = { path= "./aoc_derive" }
+aoc = { path= "./aoc" }
 itertools = "0.9.0"
 
 

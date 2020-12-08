@@ -1,28 +1,9 @@
-use aoc_derive::{aoc_mod, aoc_run};
-use std::io::{self};
+use aoc_derive::aoc_main;
 
-aoc_mod!(2020, 1, 2);
+mod aoc2020;
 
-fn main() -> io::Result<()> {
-    // let input = include_str!(concat!(
-    //     env!("CARGO_MANIFEST_DIR"),
-    //     "/src/aoc2020/input/day01"
-    // ));
-
-    // let input = aoc2020::day01::parse(input);
-    // println!("Sum: {}", aoc2020::day01::part1(&input));
-    // println!("Sum: {}", aoc2020::day01::part2(&input));
-
-    // let input = include_str!(concat!(
-    //     env!("CARGO_MANIFEST_DIR"),
-    //     "/src/aoc2020/input/day02"
-    // ));
-
-    // let input = aoc2020::day02::parse(input);
-    // println!("Sum: {}", aoc2020::day02::part1(&input));
-    // println!("Sum: {}", aoc2020::day02::part2(&input));
-
-    aoc_run!(2020, 1 , 2);
+fn main() -> std::io::Result<()> {
+    aoc_main!(2020, day01, day02);
 
     Ok(())
 }

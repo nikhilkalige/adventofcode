@@ -4,14 +4,20 @@
 name = "advent_of_code"
 version = "0.1.0"
 dependencies = [
+ "aoc",
  "aoc_derive",
  "itertools",
 ]
 
 [[package]]
+name = "aoc"
+version = "0.1.0"
+
+[[package]]
 name = "aoc_derive"
 version = "0.1.0"
 dependencies = [
+ "proc-macro2",
  "quote",
  "syn",
 ]
